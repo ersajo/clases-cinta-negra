@@ -6,6 +6,11 @@ const Products = require('../models/Products');
 router.post('/product', async (req, res, next) => {
   try {
     const { name, price, stock } = req.body;
+    
+    if (!name) throw new Error('No name in the request body');
+    if (!price) throw new Error('No price in the request body');
+    if (!stock) throw new Error('No stock in the request body');
+    
     const criteria = await Products.exists({ name: name });
     if (!criteria) {
       const productToSave = new Products(
@@ -22,22 +27,24 @@ router.post('/product', async (req, res, next) => {
       throw new Error('Ya existe ese producto');
     }
   } catch (error) {
-    res.send({ message: error.message, body: req.body }).stauts(400);
+    //res.send({ message: error.message, body: req.body }).stauts(400);
     next(error);
   }
 });
 
-router.get('/product/:id', async (req, res) => {
+router.get('/product/:id', async (req, res, next) => {
   try {
     const product = await Products
       .findById(req.params.id);
+    if (!product) throw new Error('No se encontro el producto que buscabas');
     res.send({ message: 'Petición exitosa', product: product }).status(201);
   } catch (error) {
-    res.send({ message: error.message }).status(400);
+    //res.send({ message: error.message }).status(400);
+    next(error);
   }
 });
 
-router.put('/product/:id', async (req, res) => {
+router.put('/product/:id', async (req, res, next) => {
   try {
     const product = await Products
       .updateOne({ _id: req.params.id }, {
@@ -50,19 +57,23 @@ router.put('/product/:id', async (req, res) => {
           }
         }
       });
+    if (!product.nModified) throw new Error('No se pudo actualizar el producto que buscabas');
     res.send({ message: 'Actualización exitosa', product: product }).status(201);
   } catch (error) {
-    res.send({ message: error.message }).status(400);
+    //res.send({ message: error.message }).status(400);
+    next(error);
   }
 });
 
-router.delete('/product/:id', async (req, res) => {
+router.delete('/product/:id', async (req, res, next) => {
   try {
     const product = await Products
       .deleteOne({ _id: req.params.id });
+    if (!product.deletedCount) throw new Error('No se pudo eliminar el producto que buscabas');
     res.send({ message: 'Se elimino el producto exitosamente', product: product }).status(201);
   } catch (error) {
-    res.send({ message: error.message }).status(400);
+    //res.send({ message: error.message }).status(400);
+    next(error);
   }
 });
 
